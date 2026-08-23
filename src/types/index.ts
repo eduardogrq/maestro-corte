@@ -3,8 +3,16 @@ export interface Service {
   name: string
   description: string
   duration: string
+  price: string
   /** Placeholder image path — replace with real photography */
   image: string
+}
+
+export interface Package {
+  id: string
+  name: string
+  description: string
+  price: string
 }
 
 export interface Testimonial {

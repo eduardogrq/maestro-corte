@@ -61,8 +61,10 @@ export function JsonLd() {
         },
       })),
     },
-    // TODO: Add sameAs with real social profiles
-    sameAs: [`https://instagram.com/${business.instagram}`],
+    sameAs: [
+      `https://instagram.com/${business.instagram}`,
+      business.facebookUrl,
+    ],
   }
 
   return (

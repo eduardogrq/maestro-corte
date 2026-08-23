@@ -6,7 +6,7 @@ import { fadeUp, fadeIn, staggerContainer } from "@/lib/animations"
 
 export function Hero() {
   return (
-    <section className="relative min-h-dvh flex items-center pt-20">
+    <section className="relative pt-28 sm:pt-32 lg:pt-36 pb-16 sm:pb-20 lg:pb-24">
       {/* Subtle background texture */}
       <div className="absolute inset-0 z-0">
         <div
@@ -19,7 +19,7 @@ export function Hero() {
         />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 w-full py-20 sm:py-28 lg:py-32">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-8 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Content */}
           <motion.div
@@ -92,7 +92,7 @@ export function Hero() {
             className="hidden lg:block relative"
           >
             {/* TODO: Replace with real hero photo — barbero working, close-up of a fade, or tools laid out */}
-            <div className="aspect-[3/4] rounded-2xl bg-surface overflow-hidden relative">
+            <div className="aspect-square max-h-[calc(100dvh-12rem)] rounded-2xl bg-surface overflow-hidden relative">
               <div className="absolute inset-0 flex items-center justify-center text-muted/40 text-sm text-center px-8">
                 Fotografía: barbero trabajando en domicilio
               </div>
@@ -106,21 +106,6 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 0.8 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden sm:block"
-      >
-        <div className="w-px h-12 bg-border relative overflow-hidden">
-          <motion.div
-            className="absolute top-0 left-0 w-full h-1/3 bg-muted"
-            animate={{ y: ["0%", "200%"] }}
-            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </div>
-      </motion.div>
     </section>
   )
 }

@@ -5,8 +5,8 @@ import Link from "next/link"
 import { getWhatsAppUrl } from "@/data/business"
 
 const navLinks = [
-  { href: "#servicios", label: "Servicios" },
   { href: "#experiencia", label: "Experiencia" },
+  { href: "#servicios", label: "Servicios" },
   { href: "#cobertura", label: "Cobertura" },
   { href: "#contacto", label: "Contacto" },
 ]

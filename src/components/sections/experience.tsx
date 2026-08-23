@@ -5,7 +5,7 @@ import { fadeUp, staggerContainer } from "@/lib/animations"
 
 export function Experience() {
   return (
-    <section id="experiencia" className="py-24 sm:py-32 lg:py-40">
+    <section id="experiencia" className="py-16 sm:py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <motion.div
           variants={staggerContainer}

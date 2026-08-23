@@ -15,8 +15,9 @@ export const business = {
       "Hola, vi su página de Maestro Corte y me gustaría agendar un corte a domicilio.",
   },
 
-  // TODO: Replace with real Instagram handle
-  instagram: "maestrocortebydiego",
+  instagram: "maestro.corte.diego",
+  facebook: "Maestro Corte by Diego",
+  facebookUrl: "https://www.facebook.com/profile.php?id=61593187415112",
 
   // TODO: Replace with real URL once deployed
   url: "https://maestrocorte.mx",

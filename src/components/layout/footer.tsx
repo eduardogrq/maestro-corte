@@ -66,6 +66,14 @@ export function Footer() {
               >
                 Instagram
               </a>
+              <a
+                href={business.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block text-sm text-background/60 hover:text-accent transition-colors duration-200"
+              >
+                Facebook
+              </a>
             </div>
           </div>
         </div>
