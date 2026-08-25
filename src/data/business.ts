@@ -24,11 +24,12 @@ export const business = {
   // TODO: Replace with real URL once deployed
   url: "https://maestrocorte.mx",
 
-  // TODO: Confirm real opening hours
   openingHours: {
-    days: "Lunes a Sábado",
-    hours: "9:00 – 19:00",
-    iso: ["Mo-Sa 09:00-19:00"],
+    schedule: [
+      { days: "Lunes a Sábado", hours: "9:00 – 21:00" },
+      { days: "Domingo", hours: "9:00 – 19:00" },
+    ],
+    iso: ["Mo-Sa 09:00-21:00", "Su 09:00-19:00"],
   },
 
   // TODO: Replace with real price range

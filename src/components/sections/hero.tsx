@@ -82,6 +82,14 @@ export function Hero() {
                 Ver servicios
               </a>
             </motion.div>
+
+            {/* Schedule hint */}
+            <motion.p
+              variants={fadeUp}
+              className="mt-6 text-xs sm:text-sm text-muted"
+            >
+              Lun – Sáb 9:00 – 21:00 · Dom 9:00 – 19:00
+            </motion.p>
           </motion.div>
 
           {/* Hero image — desktop only */}
