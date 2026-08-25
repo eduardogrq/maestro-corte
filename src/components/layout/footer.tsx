@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { business, getWhatsAppUrl } from "@/data/business"
 
 export function Footer() {
@@ -11,7 +12,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-5 sm:px-8 py-16 sm:py-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
           {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          <div className="sm:col-span-2 lg:col-span-1 flex flex-col">
             <p className="font-serif text-xl text-background mb-3">
               Maestro Corte
             </p>
@@ -20,6 +21,13 @@ export function Footer() {
               <br />
               en Ciudad de México.
             </p>
+            <Image
+              src="/images/maestro-corte-logo.png"
+              alt="Maestro Corte by Diego"
+              width={48}
+              height={48}
+              className="h-10 w-10 mt-2 opacity-60"
+            />
           </div>
 
           {/* Cobertura */}

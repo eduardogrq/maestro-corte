@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import Link from "next/link"
-import { business, getWhatsAppUrl } from "@/data/business"
+import { getWhatsAppUrl } from "@/data/business"
 
 const navLinks = [
   { href: "#experiencia", label: "Experiencia" },
@@ -17,15 +18,19 @@ export function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/50">
       <nav
-        className="mx-auto max-w-7xl px-5 sm:px-8 flex items-center justify-between h-16 sm:h-20"
+        className="mx-auto max-w-7xl px-5 sm:px-8 flex items-center justify-between h-20 sm:h-24"
         aria-label="Navegación principal"
       >
         {/* Logo */}
-        <Link
-          href="/"
-          className="font-serif text-lg sm:text-xl tracking-tight text-foreground"
-        >
-          Maestro Corte
+        <Link href="/" className="relative block">
+          <Image
+            src="/images/maestro-corte-full-logo.png"
+            alt="Maestro Corte by Diego"
+            width={1672}
+            height={284}
+            className="w-44 sm:w-52 h-auto"
+            priority
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -48,7 +53,7 @@ export function Header() {
             href={getWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors duration-200"
+            className="hidden lg:inline-flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition-colors duration-200"
           >
             <svg
               width="14"
