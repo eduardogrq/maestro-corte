@@ -42,7 +42,7 @@ export const services: Service[] = [
     name: "Barba express",
     description:
       "Recorte rápido y perfilado de barba para mantenerla en forma entre visitas. Práctico y sin complicaciones.",
-    duration: "15–25 min",
+    duration: "20–30 min",
     price: "$199",
     image: "/images/placeholder-barba-express.jpg",
   },

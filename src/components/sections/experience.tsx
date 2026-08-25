@@ -42,19 +42,16 @@ export function Experience() {
             </h2>
             <div className="mt-6 sm:mt-8 space-y-4 text-muted leading-relaxed">
               <p>
-                Soy Diego. Empecé con tijeras y navaja antes de que existieran
-                las máquinas modernas. Cada técnica que domino la aprendí sobre
-                cabello real, no en un curso de fin de semana.
+                <span className="font-serif text-xl sm:text-2xl text-foreground">
+                  Soy Diego.
+                </span>{" "}
+                Llevo más de 35 años dedicado al oficio de la barbería, perfeccionando técnicas, entendiendo distintos tipos de cabello y aprendiendo algo nuevo con cada cliente.
               </p>
               <p>
-                Tres décadas y media me dieron algo que no se consigue con
-                prisa: la capacidad de leer el cabello, entender lo que cada
-                cliente necesita y ejecutarlo con precisión en el primer
-                intento.
+                La experiencia me ha enseñado que un buen corte no consiste solamente en dominar las herramientas. Consiste en saber observar, escuchar y entender qué estilo funciona mejor para cada persona.
               </p>
               <p>
-                Hoy llevo esa experiencia directamente a tu domicilio en
-                Ciudad de México. Sin filas, sin espera, sin prisa.
+                Hoy llevo todo ese conocimiento directamente a tu domicilio, con la misma atención al detalle de siempre y la comodidad de recibir un servicio profesional sin salir de casa.
               </p>
             </div>
 
