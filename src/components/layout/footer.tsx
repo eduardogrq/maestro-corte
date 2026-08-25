@@ -56,7 +56,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="block text-sm text-background/60 hover:text-accent transition-colors duration-200"
               >
-                WhatsApp
+                56 4051 0011 · WhatsApp
               </a>
               <a
                 href={`https://instagram.com/${business.instagram}`}
@@ -64,7 +64,7 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="block text-sm text-background/60 hover:text-accent transition-colors duration-200"
               >
-                Instagram
+                @{business.instagram}
               </a>
               <a
                 href={business.facebookUrl}

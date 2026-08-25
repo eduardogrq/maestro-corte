@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { testimonials } from "@/data/testimonials"
+import { business } from "@/data/business"
 import { fadeUp, staggerContainer } from "@/lib/animations"
 
 export function Testimonials() {
@@ -56,6 +57,44 @@ export function Testimonials() {
               </motion.blockquote>
             ))}
           </div>
+
+          {/* Google Reviews link */}
+          <motion.div variants={fadeUp} className="mt-12 sm:mt-16 flex justify-center">
+            <a
+              href={business.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-6 py-3.5 rounded-full border border-border bg-background hover:border-accent/50 transition-colors duration-200"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+                className="text-accent shrink-0"
+              >
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+              </svg>
+              <span className="text-sm font-medium text-foreground">
+                Ver más reseñas en Google Maps
+              </span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                className="text-muted shrink-0"
+              >
+                <path d="M7 17L17 7M17 7H7M17 7v10" />
+              </svg>
+            </a>
+          </motion.div>
         </motion.div>
       </div>
     </section>

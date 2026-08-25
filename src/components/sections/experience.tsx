@@ -42,8 +42,8 @@ export function Experience() {
             </h2>
             <div className="mt-6 sm:mt-8 space-y-4 text-muted leading-relaxed">
               <p>
-                Empecé con tijeras y navaja antes de que existieran las
-                máquinas modernas. Cada técnica que domino la aprendí sobre
+                Soy Diego. Empecé con tijeras y navaja antes de que existieran
+                las máquinas modernas. Cada técnica que domino la aprendí sobre
                 cabello real, no en un curso de fin de semana.
               </p>
               <p>

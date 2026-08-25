@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { getWhatsAppUrl } from "@/data/business"
+import { business, getWhatsAppUrl } from "@/data/business"
 
 const navLinks = [
   { href: "#experiencia", label: "Experiencia" },
@@ -42,15 +42,25 @@ export function Header() {
           ))}
         </ul>
 
-        {/* Desktop CTA */}
-        <a
-          href={getWhatsAppUrl()}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-foreground text-background text-sm font-medium rounded-full hover:bg-foreground/90 transition-colors duration-200"
-        >
-          Agendar cita
-        </a>
+        {/* Desktop CTA + phone */}
+        <div className="hidden md:flex items-center gap-4">
+          <a
+            href={getWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-muted hover:text-foreground transition-colors duration-200"
+          >
+            56 4051 0011
+          </a>
+          <a
+            href={getWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-foreground text-background text-sm font-medium rounded-full hover:bg-foreground/90 transition-colors duration-200"
+          >
+            Agendar cita
+          </a>
+        </div>
 
         {/* Mobile menu button */}
         <button

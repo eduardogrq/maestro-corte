@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "@/lib/animations"
-import { getWhatsAppUrl } from "@/data/business"
+import { business, getWhatsAppUrl } from "@/data/business"
 
 export function CtaFinal() {
   return (
@@ -27,8 +27,8 @@ export function CtaFinal() {
             variants={fadeUp}
             className="mt-5 text-background/60 leading-relaxed"
           >
-            Escríbenos por WhatsApp y agenda el día y horario que mejor te
-            funcione. Llegamos a tu domicilio en Coyoacán y Benito Juárez.
+            Escríbele a Diego por WhatsApp y agenda el día y horario que mejor
+            te funcione. Llegamos a tu domicilio en Coyoacán y Benito Juárez.
           </motion.p>
           <motion.div variants={fadeUp} className="mt-8 sm:mt-10">
             <a
@@ -39,6 +39,40 @@ export function CtaFinal() {
             >
               Consulta disponibilidad
             </a>
+          </motion.div>
+
+          {/* Contact info + social */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
+          >
+            <a
+              href={getWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-background/60 hover:text-accent transition-colors duration-200"
+            >
+              56 4051 0011
+            </a>
+            <span className="hidden sm:block w-px h-3.5 bg-background/20" />
+            <div className="flex items-center gap-4">
+              <a
+                href={`https://instagram.com/${business.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-background/60 hover:text-accent transition-colors duration-200"
+              >
+                Instagram
+              </a>
+              <a
+                href={business.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-background/60 hover:text-accent transition-colors duration-200"
+              >
+                Facebook
+              </a>
+            </div>
           </motion.div>
         </motion.div>
       </div>
