@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { fadeUp, staggerContainer } from "@/lib/animations"
 
@@ -16,11 +17,14 @@ export function Experience() {
         >
           {/* Image */}
           <motion.div variants={fadeUp} className="relative order-2 lg:order-1">
-            {/* TODO: Replace with real photo — close-up of hands working, tools, detail shot */}
-            <div className="aspect-[4/5] rounded-2xl bg-surface overflow-hidden">
-              <div className="w-full h-full flex items-center justify-center text-muted/40 text-sm">
-                Fotografía: manos de barbero trabajando
-              </div>
+            <div className="aspect-[4/5] rounded-2xl bg-surface overflow-hidden relative">
+              <Image
+                src="/images/hero-barbero-hands.png"
+                alt="Manos de barbero profesional trabajando con tijeras, más de 35 años de experiencia"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
             {/* Accent detail */}
             <div className="absolute -bottom-4 -right-4 w-24 h-24 border border-accent/30 rounded-2xl -z-10" />

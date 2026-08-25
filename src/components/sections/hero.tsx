@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { motion } from "framer-motion"
 import { getWhatsAppUrl } from "@/data/business"
 import { fadeUp, fadeIn, staggerContainer } from "@/lib/animations"
@@ -91,11 +92,15 @@ export function Hero() {
             transition={{ delay: 0.4, duration: 0.8 }}
             className="hidden lg:block relative"
           >
-            {/* TODO: Replace with real hero photo — barbero working, close-up of a fade, or tools laid out */}
             <div className="aspect-square max-h-[calc(100dvh-12rem)] rounded-2xl bg-surface overflow-hidden relative">
-              <div className="absolute inset-0 flex items-center justify-center text-muted/40 text-sm text-center px-8">
-                Fotografía: barbero trabajando en domicilio
-              </div>
+              <Image
+                src="/images/hero-barbero.png"
+                alt="Diego, barbero profesional, realizando un corte a domicilio en Ciudad de México"
+                fill
+                className="object-cover"
+                priority
+                sizes="(max-width: 1024px) 0vw, 50vw"
+              />
               {/* "Desde 1990" badge overlay */}
               <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur-sm px-4 py-2.5 rounded-lg border border-border/50">
                 <p className="text-xs text-muted uppercase tracking-wider">Desde</p>
