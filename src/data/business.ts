@@ -15,8 +15,7 @@ export const business = {
       "Hola, vi su página de Maestro Corte y me gustaría agendar un corte a domicilio.",
   },
 
-  googleMapsUrl: "https://maps.app.goo.gl/ggBziUbLmXo2n95i7",
-
+  googleMapsUrl: "https://maps.app.goo.gl/jXSdBFZXHNznxr996",
   instagram: "maestro.corte.diego",
   facebook: "Maestro Corte by Diego",
   facebookUrl: "https://www.facebook.com/profile.php?id=61593187415112",
