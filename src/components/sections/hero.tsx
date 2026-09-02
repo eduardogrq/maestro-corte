@@ -88,7 +88,7 @@ export function Hero() {
               variants={fadeUp}
               className="mt-6 text-xs sm:text-sm text-muted"
             >
-              Lun – Sáb 9:00 – 21:00 · Dom 9:00 – 19:00
+              Lun – Sáb 10:00 – 20:00 · Dom 10:00 – 17:00
             </motion.p>
           </motion.div>
 

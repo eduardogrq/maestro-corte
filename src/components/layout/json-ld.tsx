@@ -23,14 +23,14 @@ export function JsonLd() {
           "Friday",
           "Saturday",
         ],
-        opens: "09:00",
-        closes: "21:00",
+        opens: "10:00",
+        closes: "20:00",
       },
       {
         "@type": "OpeningHoursSpecification",
         dayOfWeek: ["Sunday"],
-        opens: "09:00",
-        closes: "19:00",
+        opens: "10:00",
+        closes: "17:00",
       },
     ],
     areaServed: [
