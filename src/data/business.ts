@@ -25,10 +25,10 @@ export const business = {
 
   openingHours: {
     schedule: [
-      { days: "Lunes a Sábado", hours: "9:00 – 21:00" },
-      { days: "Domingo", hours: "9:00 – 19:00" },
+      { days: "Lunes a Sábado", hours: "10:00 – 20:00" },
+      { days: "Domingo", hours: "10:00 – 17:00" },
     ],
-    iso: ["Mo-Sa 09:00-21:00", "Su 09:00-19:00"],
+    iso: ["Mo-Sa 10:00-20:00", "Su 10:00-17:00"],
   },
 
   // TODO: Replace with real price range
