@@ -1,4 +1,13 @@
-import { index, integer, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core"
 
 export const appointmentStatus = pgEnum("appointment_status", [
   "scheduled",
@@ -27,8 +36,17 @@ export const appointments = pgTable(
     clientPhone: text("client_phone").notNull(),
 
     serviceId: text("service_id").notNull(),
-    // Snapshot del catálogo al momento de agendar. Si mañana sube el precio de
-    // un corte, el historial no se reescribe.
+
+    // Variantes del servicio base. Se guardan aparte del snapshot porque el
+    // formulario de edición necesita volver a marcarlas, y "Corte + barba ·
+    // Amigos" como texto no se puede desarmar de forma confiable.
+    groupId: text("group_id").notNull().default("solo"),
+    withBeard: boolean("with_beard").notNull().default(false),
+    firstVisit: boolean("first_visit").notNull().default(false),
+
+    // Snapshot del catálogo al momento de agendar, ya con las variantes
+    // aplicadas. Si mañana sube el precio de un corte, el historial no se
+    // reescribe.
     serviceName: text("service_name").notNull(),
     priceMxn: integer("price_mxn").notNull(),
     durationMin: integer("duration_min").notNull(),

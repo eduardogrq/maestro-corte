@@ -1,5 +1,5 @@
 import "server-only"
-import { findBookableService } from "@/data/services"
+import { findBookableService, resolveServiceTotals } from "@/data/services"
 import {
   addMinutes,
   endsAfterClosing,
@@ -38,14 +38,20 @@ function resolveSlot(input: AppointmentInput): ResolvedSlot {
     throw new Error(`Servicio desconocido: ${input.serviceId}`)
   }
 
+  const totals = resolveServiceTotals(service, {
+    groupId: input.groupId,
+    withBeard: input.withBeard,
+    firstVisit: input.firstVisit,
+  })
+
   const startsAt = wallClockToUtc(input.date, input.time)
 
   return {
-    serviceName: service.name,
-    priceMxn: service.priceMxn,
-    durationMin: service.durationMin,
+    serviceName: totals.name,
+    priceMxn: totals.priceMxn,
+    durationMin: totals.durationMin,
     startsAt,
-    endsAt: addMinutes(startsAt, service.durationMin),
+    endsAt: addMinutes(startsAt, totals.durationMin),
   }
 }
 
@@ -195,6 +201,9 @@ export async function createAppointment(
     clientName: input.clientName,
     clientPhone: input.clientPhone,
     serviceId: input.serviceId,
+    groupId: input.groupId,
+    withBeard: input.withBeard,
+    firstVisit: input.firstVisit,
     serviceName: slot.serviceName,
     priceMxn: slot.priceMxn,
     durationMin: slot.durationMin,
@@ -236,6 +245,9 @@ export async function editAppointment(
     clientName: input.clientName,
     clientPhone: input.clientPhone,
     serviceId: input.serviceId,
+    groupId: input.groupId,
+    withBeard: input.withBeard,
+    firstVisit: input.firstVisit,
     serviceName: slot.serviceName,
     priceMxn: slot.priceMxn,
     durationMin: slot.durationMin,

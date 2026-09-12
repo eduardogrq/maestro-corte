@@ -1,6 +1,6 @@
 import "server-only"
 import { z } from "zod"
-import { findBookableService } from "@/data/services"
+import { findBookableService, findGroupOption } from "@/data/services"
 import { normalizeMxPhone } from "@/lib/phone"
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -43,6 +43,21 @@ export const appointmentInputSchema = z.object({
       message: "Ese servicio ya no existe en el catálogo.",
     }),
 
+  groupId: z
+    .string()
+    .refine((value) => findGroupOption(value) !== undefined, {
+      message: "Elige cuántas personas.",
+    }),
+
+  // Checkboxes in the UI, so only these literals can ever arrive.
+  withBeard: z
+    .enum(["0", "1"], { message: "Valor inválido." })
+    .transform((value) => value === "1"),
+
+  firstVisit: z
+    .enum(["0", "1"], { message: "Valor inválido." })
+    .transform((value) => value === "1"),
+
   date: z.string().regex(DATE_PATTERN, "Elige una fecha."),
   time: z.string().regex(TIME_PATTERN, "Elige una hora."),
 
@@ -61,6 +76,9 @@ export interface AppointmentFormValues {
   clientName: string
   clientPhone: string
   serviceId: string
+  groupId: string
+  withBeard: string
+  firstVisit: string
   date: string
   time: string
   address: string
@@ -77,6 +95,10 @@ export function readFormValues(formData: FormData): AppointmentFormValues {
     clientName: read("clientName"),
     clientPhone: read("clientPhone"),
     serviceId: read("serviceId"),
+    groupId: read("groupId") || "solo",
+    // An unchecked checkbox sends nothing at all, so absence means "no".
+    withBeard: read("withBeard") || "0",
+    firstVisit: read("firstVisit") || "0",
     date: read("date"),
     time: read("time"),
     address: read("address"),

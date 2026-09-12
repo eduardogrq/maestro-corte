@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { BEARD_EXTRA, groupOptions, resolveServiceTotals } from "@/data/services"
 import type { BookableService } from "@/types"
 import {
   addDaysToDateString,
@@ -65,6 +66,9 @@ export function AppointmentForm({
   const [date, setDate] = useState(values.date)
   const [time, setTime] = useState(values.time)
   const [serviceId, setServiceId] = useState(values.serviceId)
+  const [groupId, setGroupId] = useState(values.groupId)
+  const [withBeard, setWithBeard] = useState(values.withBeard === "1")
+  const [firstVisit, setFirstVisit] = useState(values.firstVisit === "1")
 
   // One token per mounted form: a double tap resubmits the same one and collides
   // on the unique index instead of creating a second appointment.
@@ -72,8 +76,14 @@ export function AppointmentForm({
 
   const service = services.find((candidate) => candidate.id === serviceId)
 
+  // Same function the server uses, so the preview can never promise a price or
+  // an end time that the saved appointment contradicts.
+  const totals = service
+    ? resolveServiceTotals(service, { groupId, withBeard, firstVisit })
+    : undefined
+
   const slots = useMemo(() => {
-    const durationMin = service?.durationMin ?? 0
+    const durationMin = totals?.durationMin ?? 0
 
     return slotsForDate(date).map((slot) => {
       const startsAt = wallClockToUtc(date, slot)
@@ -87,7 +97,7 @@ export function AppointmentForm({
 
       return { slot, conflict, startsAt, endsAt }
     })
-  }, [busy, date, service?.durationMin])
+  }, [busy, date, totals?.durationMin])
 
   const selected = slots.find((entry) => entry.slot === time)
 
@@ -97,6 +107,7 @@ export function AppointmentForm({
       <input type="hidden" name="clientToken" value={clientToken} />
       <input type="hidden" name="date" value={date} />
       <input type="hidden" name="time" value={time} />
+      <input type="hidden" name="groupId" value={groupId} />
 
       <Field
         htmlFor="clientName"
@@ -149,6 +160,69 @@ export function AppointmentForm({
           ))}
         </Select>
       </Field>
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-sm font-medium text-foreground">Personas</legend>
+
+        <div className="grid gap-2 sm:grid-cols-3">
+          {groupOptions.map((option) => (
+            <Button
+              key={option.id}
+              variant={groupId === option.id ? "primary" : "secondary"}
+              aria-pressed={groupId === option.id}
+              onClick={() => setGroupId(option.id)}
+            >
+              {option.label}
+              {option.hint && (
+                <span className={groupId === option.id ? "opacity-70" : "text-muted"}>
+                  {option.hint}
+                </span>
+              )}
+            </Button>
+          ))}
+        </div>
+
+        {state.fieldErrors?.groupId && (
+          <p className="text-sm text-danger" role="alert">
+            {state.fieldErrors.groupId}
+          </p>
+        )}
+      </fieldset>
+
+      {/* Labels wrapping the inputs, so the whole 48px row is the tap target. */}
+      <div className="flex flex-col gap-2">
+        <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-200 hover:border-muted/50">
+          <input
+            type="checkbox"
+            name="withBeard"
+            value="1"
+            checked={withBeard}
+            onChange={(event) => setWithBeard(event.target.checked)}
+            className="size-5 shrink-0 accent-accent"
+          />
+          <span className="text-base text-foreground">
+            Incluye barba
+            <span className="text-muted"> · +{BEARD_EXTRA.durationMin} min</span>
+          </span>
+        </label>
+
+        <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-200 hover:border-muted/50">
+          <input
+            type="checkbox"
+            name="firstVisit"
+            value="1"
+            checked={firstVisit}
+            onChange={(event) => setFirstVisit(event.target.checked)}
+            className="size-5 shrink-0 accent-accent"
+          />
+          <span className="text-base text-foreground">
+            Primera cita
+            {/* Not "20% off": haircuts are a flat $229 and Amigos is $449. The
+                live total below is the honest number. */}
+            <span className="text-muted"> · precio de bienvenida</span>
+          </span>
+        </label>
+      </div>
 
       <div className="flex flex-col gap-3">
         <Field htmlFor="dateInput" label="Fecha" error={state.fieldErrors?.date}>
@@ -232,12 +306,17 @@ export function AppointmentForm({
       </fieldset>
 
       {/* Live total. The barber should never have to add up minutes or pesos. */}
-      {selected && service && (
-        <p className="rounded-xl bg-surface px-4 py-3 text-base text-foreground">
-          {formatTimeRange(selected.startsAt, selected.endsAt)}
-          <span className="text-muted"> · </span>
-          {formatPriceMxn(service.priceMxn)}
-        </p>
+      {selected && totals && (
+        <div className="rounded-xl bg-surface px-4 py-3">
+          <p className="text-base text-foreground">
+            {formatTimeRange(selected.startsAt, selected.endsAt)}
+            <span className="text-muted"> · </span>
+            {formatPriceMxn(totals.priceMxn)}
+          </p>
+          <p className="mt-0.5 text-sm text-muted">
+            {totals.name} · {totals.durationMin} min
+          </p>
+        </div>
       )}
 
       <Field
