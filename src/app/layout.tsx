@@ -1,9 +1,6 @@
 import type { Metadata } from "next"
 import { DM_Sans, Playfair_Display } from "next/font/google"
 import "./globals.css"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
-import { JsonLd } from "@/components/layout/json-ld"
 import { business } from "@/data/business"
 
 const dmSans = DM_Sans({
@@ -80,12 +77,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es-MX"
       className={`${dmSans.variable} ${playfair.variable} antialiased`}
     >
-      <body className="min-h-dvh flex flex-col bg-background text-foreground">
-        <JsonLd />
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-      </body>
+      <body className="min-h-dvh bg-background text-foreground">{children}</body>
     </html>
   )
 }

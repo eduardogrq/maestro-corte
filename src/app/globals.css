@@ -9,6 +9,11 @@
   --accent-hover: #A6825C;
   --border: #E2DDD6;
   --surface-dark: #2C2825;
+
+  /* Estado — tonos apagados para no romper la paleta cálida */
+  --success: #4F7A5B;
+  --warning: #B8853A;
+  --danger: #A64B42;
 }
 
 @theme inline {
@@ -20,6 +25,9 @@
   --color-accent-hover: var(--accent-hover);
   --color-border: var(--border);
   --color-surface-dark: var(--surface-dark);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
   --font-sans: var(--font-dm-sans);
   --font-serif: var(--font-playfair);
 }

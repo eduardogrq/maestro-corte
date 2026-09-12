@@ -1,3 +1,5 @@
+import { buildWhatsAppUrl } from "@/lib/phone"
+
 export const business = {
   name: "Maestro Corte by Diego",
   shortName: "Maestro Corte",
@@ -31,6 +33,20 @@ export const business = {
     iso: ["Mo-Sa 10:00-20:00", "Su 10:00-17:00"],
   },
 
+  /**
+   * Same hours as `openingHours`, but machine-readable for slot generation.
+   * Indexed by day of week, 0 = Sunday. Keep in sync with the display copy above.
+   */
+  bookingHours: [
+    { open: "10:00", close: "17:00" }, // domingo
+    { open: "10:00", close: "20:00" }, // lunes
+    { open: "10:00", close: "20:00" }, // martes
+    { open: "10:00", close: "20:00" }, // miércoles
+    { open: "10:00", close: "20:00" }, // jueves
+    { open: "10:00", close: "20:00" }, // viernes
+    { open: "10:00", close: "20:00" }, // sábado
+  ],
+
   // TODO: Replace with real price range
   priceRange: "$$",
 
@@ -43,5 +59,5 @@ export const business = {
 
 export function getWhatsAppUrl(): string {
   const { number, message } = business.whatsapp
-  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`
+  return buildWhatsAppUrl(number, message)
 }

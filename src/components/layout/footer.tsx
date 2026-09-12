@@ -1,4 +1,5 @@
 import Image from "next/image"
+import Link from "next/link"
 import { business, getWhatsAppUrl } from "@/data/business"
 
 export function Footer() {
@@ -123,8 +124,18 @@ export function Footer() {
           <p className="text-xs text-background/40">
             © {currentYear} {business.name}. Todos los derechos reservados.
           </p>
-          <p className="text-xs text-background/40">
-            Coyoacán · Benito Juárez · CDMX
+          <p className="flex items-center gap-3 text-xs text-background/40">
+            <span>Coyoacán · Benito Juárez · CDMX</span>
+            <span aria-hidden="true">·</span>
+            {/* Discreet on purpose: the panel is for Diego, not for clients. It is
+                safe to expose — password protected, noindex, and disallowed in
+                robots.txt — and he should never have to type a URL from memory. */}
+            <Link
+              href="/admin"
+              className="underline underline-offset-4 transition-colors duration-200 hover:text-accent"
+            >
+              Panel
+            </Link>
           </p>
         </div>
       </div>
