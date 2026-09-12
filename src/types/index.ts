@@ -14,10 +14,11 @@ export interface Service {
   durationMin: number
   priceMxn: number
   /**
-   * Hand-set first-visit price. Only for the adult haircuts Diego quotes at
-   * $229; everything else falls to the 20% rule in `resolveServiceTotals`.
+   * Welcome price for a client's first visit. Required, not derived from a
+   * discount: adding a service must force an explicit decision, because this
+   * number is what the client reads in the WhatsApp confirmation.
    */
-  firstVisitPriceMxn?: number
+  firstVisitPriceMxn: number
   /** Placeholder image path — replace with real photography */
   image: string
 }
@@ -42,7 +43,7 @@ export interface BookableService {
   name: string
   durationMin: number
   priceMxn: number
-  firstVisitPriceMxn?: number
+  firstVisitPriceMxn: number
 }
 
 /** How many clients share one visit, and what that visit costs as a package. */
@@ -52,9 +53,14 @@ export interface GroupOption {
   /** Shown next to the label, e.g. "2 adultos". */
   hint?: string
   peopleCount: number
-  /** Package price, replacing the base service price. Absent for a single client. */
-  priceMxn?: number
-  firstVisitPriceMxn?: number
+  /**
+   * Package price, replacing the base service price. Absent for a single client.
+   * Both prices travel together so a package can never be half-priced.
+   */
+  price?: {
+    regularMxn: number
+    firstVisitMxn: number
+  }
 }
 
 /** The variations on a base service the barber picks in the panel. */

@@ -53,6 +53,7 @@ export const services: Service[] = [
     price: "$249",
     durationMin: 45,
     priceMxn: 249,
+    firstVisitPriceMxn: 199,
     image: "/images/placeholder-barba.jpg",
   },
   {
@@ -64,6 +65,7 @@ export const services: Service[] = [
     price: "$199",
     durationMin: 30,
     priceMxn: 199,
+    firstVisitPriceMxn: 179,
     image: "/images/placeholder-barba-express.jpg",
   },
   {
@@ -75,6 +77,7 @@ export const services: Service[] = [
     price: "$229",
     durationMin: 60,
     priceMxn: 229,
+    firstVisitPriceMxn: 199,
     image: "/images/placeholder-ninos.jpg",
   },
 ]
@@ -125,11 +128,13 @@ export function findBookableService(id: string): BookableService | undefined {
 
 /**
  * Beard on top of a haircut. Priced from the catalog rather than invented:
- * "Corte + Barba" is $449 and a cut alone is $279.
+ * "Corte + Barba" is $449 and a cut alone is $279. On a first visit the combo is
+ * $419 against a $229 haircut, hence the $190.
  */
 export const BEARD_EXTRA = {
   durationMin: 45,
   priceMxn: 170,
+  firstVisitPriceMxn: 190,
 } as const
 
 /**
@@ -139,15 +144,19 @@ export const BEARD_EXTRA = {
  */
 export const groupOptions: GroupOption[] = [
   { id: "solo", label: "1 persona", peopleCount: 1 },
-  { id: "padre-hijo", label: "Padre e hijo", hint: "adulto y niño", peopleCount: 2, priceMxn: 449 },
+  {
+    id: "padre-hijo",
+    label: "Padre e hijo",
+    hint: "adulto y niño",
+    peopleCount: 2,
+    price: { regularMxn: 449, firstVisitMxn: 409 },
+  },
   {
     id: "amigos",
     label: "Amigos",
     hint: "2 adultos",
     peopleCount: 2,
-    priceMxn: 499,
-    // The only package price Diego fixed by hand; the rest fall to the 20% rule.
-    firstVisitPriceMxn: 449,
+    price: { regularMxn: 499, firstVisitMxn: 449 },
   },
 ]
 
@@ -155,20 +164,13 @@ export function findGroupOption(id: string): GroupOption | undefined {
   return groupOptions.find((option) => option.id === id)
 }
 
-/** First-visit discount for everything Diego has not priced explicitly. */
-export const FIRST_VISIT_DISCOUNT = 0.2
-
-/**
- * A hand-set first-visit price always wins; otherwise 20% off, rounded to whole
- * pesos because nobody pays cents in cash.
- */
-function firstVisitPriceOf(priceMxn: number, override?: number): number {
-  return override ?? Math.round(priceMxn * (1 - FIRST_VISIT_DISCOUNT))
-}
-
 /**
  * What actually gets reserved and charged. Lives here, next to the catalog, so
  * the server and the live preview in the form can never disagree.
+ *
+ * Every first-visit price is written by hand, never derived from a percentage:
+ * these numbers end up in the WhatsApp message the client reads, so Diego decides
+ * them one by one instead of a formula rounding them for him.
  *
  * The beard is added once, not per person: two clients both wanting a beard is
  * rare enough that a note covers it, and a per-person checkbox grid would cost
@@ -181,21 +183,19 @@ export function resolveServiceTotals(
   const group = findGroupOption(groupId) ?? groupOptions[0]
 
   // A two-person package sets the whole price; on its own, the service does.
-  const isPackage = group.priceMxn !== undefined
-  const basePrice = group.priceMxn ?? service.priceMxn
-  const baseOverride = isPackage ? group.firstVisitPriceMxn : service.firstVisitPriceMxn
+  const base = group.price ?? {
+    regularMxn: service.priceMxn,
+    firstVisitMxn: service.firstVisitPriceMxn,
+  }
 
-  const beardPrice = firstVisit
-    ? firstVisitPriceOf(BEARD_EXTRA.priceMxn)
-    : BEARD_EXTRA.priceMxn
+  const beardPrice = firstVisit ? BEARD_EXTRA.firstVisitPriceMxn : BEARD_EXTRA.priceMxn
 
   return {
     name: describeService(service.name, { groupId, withBeard, firstVisit }),
     durationMin:
       service.durationMin * group.peopleCount + (withBeard ? BEARD_EXTRA.durationMin : 0),
     priceMxn:
-      (firstVisit ? firstVisitPriceOf(basePrice, baseOverride) : basePrice) +
-      (withBeard ? beardPrice : 0),
+      (firstVisit ? base.firstVisitMxn : base.regularMxn) + (withBeard ? beardPrice : 0),
   }
 }
 
