@@ -22,8 +22,7 @@ export const business = {
   facebook: "Maestro Corte by Diego",
   facebookUrl: "https://www.facebook.com/profile.php?id=61593187415112",
 
-  // TODO: Replace with real URL once deployed
-  url: "https://maestrocorte.mx",
+  url: "https://maestrocorte.com",
 
   openingHours: {
     schedule: [

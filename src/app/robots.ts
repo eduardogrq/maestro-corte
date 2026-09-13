@@ -6,9 +6,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      // The panel is private. `noindex` on the admin layout is the real barrier;
-      // this just keeps crawlers from knocking.
-      disallow: "/admin",
+      // The panel is private, and each `/cita/...` link belongs to one client.
+      // `noindex` on those pages is the real barrier; this just keeps crawlers
+      // from knocking.
+      disallow: ["/admin", "/cita"],
     },
     sitemap: `${business.url}/sitemap.xml`,
   }

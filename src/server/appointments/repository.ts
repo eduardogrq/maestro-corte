@@ -202,6 +202,14 @@ export async function markCalendarFailed(id: string, message: string): Promise<v
     .where(eq(appointments.id, id))
 }
 
+/**
+ * Hard delete, with no going back. The service is what guarantees the Calendar
+ * event was cancelled first — this row is the only place its id was ever stored.
+ */
+export async function deleteAppointment(id: string): Promise<void> {
+  await db.delete(appointments).where(eq(appointments.id, id))
+}
+
 export async function cancelAppointment(id: string): Promise<Appointment | undefined> {
   const [row] = await db
     .update(appointments)

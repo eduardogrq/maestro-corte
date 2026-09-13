@@ -6,6 +6,7 @@ import { requireSession } from "@/server/auth/dal"
 import {
   cancelAppointment as cancelAppointmentService,
   createAppointment,
+  deleteAppointment as deleteAppointmentService,
   editAppointment,
   syncToCalendar,
 } from "@/server/appointments/service"
@@ -127,6 +128,26 @@ export async function cancelAppointmentAction(formData: FormData): Promise<void>
 
   revalidatePath("/admin")
   revalidatePath(`/admin/appointments/${id}`)
+}
+
+/**
+ * Irreversible. The service refuses anything that is not already cancelled, so
+ * this can never be the first destructive tap on a live appointment.
+ */
+export async function deleteAppointmentAction(formData: FormData): Promise<void> {
+  await requireSession()
+
+  const id = formData.get("id")
+
+  if (typeof id !== "string" || id.length === 0) {
+    return
+  }
+
+  await deleteAppointmentService(id)
+
+  revalidatePath("/admin")
+  // Outside any try: the detail page for this id would now be a 404.
+  redirect("/admin")
 }
 
 /**

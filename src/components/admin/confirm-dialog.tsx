@@ -2,27 +2,34 @@
 
 import { useRef } from "react"
 import { useFormStatus } from "react-dom"
-import { cancelAppointmentAction } from "@/actions/appointments"
 import { Button } from "@/components/ui/button"
 
-interface CancelAppointmentDialogProps {
+interface ConfirmDialogProps {
+  /** Server Action that reads the hidden `id` field. */
+  action: (formData: FormData) => Promise<void>
   appointmentId: string
-  clientName: string
-  /** Only a synced appointment has an event to remove from Calendar. */
-  inCalendar: boolean
+  triggerLabel: string
+  title: string
+  description: string
+  confirmLabel: string
+  pendingLabel: string
 }
 
 /**
- * Cancelling is the one irreversible action in the panel, and it is one tap away
- * from the WhatsApp button on a phone used standing up. Native `<dialog>` +
- * `showModal()` gives a real modal (focus trap, Esc, `::backdrop`) without
+ * Guards the two irreversible actions in the panel, both one tap away from the
+ * WhatsApp button on a phone used standing up. Native `<dialog>` +
+ * `showModal()` gives a real modal — focus trap, Esc, `::backdrop` — without
  * shipping a dialog library.
  */
-export function CancelAppointmentDialog({
+export function ConfirmDialog({
+  action,
   appointmentId,
-  clientName,
-  inCalendar,
-}: CancelAppointmentDialogProps) {
+  triggerLabel,
+  title,
+  description,
+  confirmLabel,
+  pendingLabel,
+}: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
 
   return (
@@ -32,7 +39,7 @@ export function CancelAppointmentDialog({
         className="w-full"
         onClick={() => dialogRef.current?.showModal()}
       >
-        Cancelar cita
+        {triggerLabel}
       </Button>
 
       <dialog
@@ -45,21 +52,16 @@ export function CancelAppointmentDialog({
         // uses to center a modal dialog.
         className="m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-sm overflow-auto rounded-2xl border border-border bg-background p-6 text-foreground backdrop:bg-foreground/50"
       >
-        <h2 className="font-serif text-xl text-foreground">
-          ¿Cancelar la cita de {clientName}?
-        </h2>
+        <h2 className="font-serif text-xl text-foreground">{title}</h2>
+        <p className="mt-3 text-sm text-muted">{description}</p>
 
-        <p className="mt-3 text-sm text-muted">
-          {inCalendar
-            ? "Se quita de tu calendario de Google y no se puede deshacer."
-            : "No se puede deshacer."}{" "}
-          El cliente no recibe ningún aviso: si ya quedaste con él, avísale por
-          WhatsApp.
-        </p>
-
-        <form action={cancelAppointmentAction} className="mt-6 flex flex-col gap-3">
+        <form action={action} className="mt-6 flex flex-col gap-3">
           <input type="hidden" name="id" value={appointmentId} />
-          <ConfirmActions onDismiss={() => dialogRef.current?.close()} />
+          <ConfirmActions
+            confirmLabel={confirmLabel}
+            pendingLabel={pendingLabel}
+            onDismiss={() => dialogRef.current?.close()}
+          />
         </form>
       </dialog>
     </>
@@ -71,13 +73,21 @@ export function CancelAppointmentDialog({
  * above it. The safe option sits at the bottom, closest to the thumb, so the
  * easiest tap is the one that changes nothing.
  */
-function ConfirmActions({ onDismiss }: { onDismiss: () => void }) {
+function ConfirmActions({
+  confirmLabel,
+  pendingLabel,
+  onDismiss,
+}: {
+  confirmLabel: string
+  pendingLabel: string
+  onDismiss: () => void
+}) {
   const { pending } = useFormStatus()
 
   return (
     <>
       <Button type="submit" variant="danger" className="w-full" disabled={pending}>
-        {pending ? "Cancelando…" : "Sí, cancelar la cita"}
+        {pending ? pendingLabel : confirmLabel}
       </Button>
 
       <Button

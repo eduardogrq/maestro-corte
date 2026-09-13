@@ -2,6 +2,8 @@ import { buildConfirmationUrl, type AppointmentMessageData } from "@/lib/appoint
 
 interface WhatsAppButtonProps {
   appointment: AppointmentMessageData
+  /** Built server-side: the signing key must never reach the browser. */
+  publicUrl: string
   label?: string
 }
 
@@ -12,11 +14,12 @@ interface WhatsAppButtonProps {
  */
 export function WhatsAppButton({
   appointment,
+  publicUrl,
   label = "Enviar confirmación por WhatsApp",
 }: WhatsAppButtonProps) {
   return (
     <a
-      href={buildConfirmationUrl(appointment)}
+      href={buildConfirmationUrl(appointment, publicUrl)}
       target="_blank"
       rel="noopener noreferrer"
       className="inline-flex min-h-14 w-full items-center justify-center gap-2.5 rounded-full bg-success px-6 text-base font-medium text-background transition-colors duration-200 hover:bg-success/90"

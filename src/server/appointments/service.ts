@@ -268,6 +268,38 @@ export async function editAppointment(
   return { kind: "updated", appointment }
 }
 
+/**
+ * Deletes the row for good. Only cancelled appointments qualify, and that is a
+ * safety rule, not a formality: cancelling is what removes the event from the
+ * barber's calendar, and this row holds the only copy of that event id. Delete a
+ * live appointment and the event stays in his personal calendar forever, with no
+ * way for us to ever find it again.
+ *
+ * Order is the reverse of creating — Calendar first, Postgres second. If Google
+ * is unreachable nothing is deleted: a leftover row is recoverable, a ghost event
+ * is not.
+ */
+export async function deleteAppointment(id: string): Promise<void> {
+  const appointment = await repository.findAppointmentById(id)
+
+  // Already gone, likely a double tap. Nothing to do and nothing to report.
+  if (!appointment) {
+    return
+  }
+
+  if (appointment.status !== "cancelled") {
+    throw new Error("Cancela la cita antes de eliminarla.")
+  }
+
+  // The cancel could have failed to reach Google. The PATCH is idempotent, so
+  // running it again is free, and letting it throw here stops the delete.
+  if (appointment.calendarEventId && appointment.calendarSync !== "synced") {
+    await cancelCalendarEvent(appointment.calendarEventId)
+  }
+
+  await repository.deleteAppointment(id)
+}
+
 export async function cancelAppointment(id: string): Promise<Appointment> {
   const appointment = await repository.cancelAppointment(id)
 
