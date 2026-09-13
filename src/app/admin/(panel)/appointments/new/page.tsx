@@ -15,6 +15,7 @@ export default async function NewAppointmentPage() {
   await requireSession()
 
   const today = todayInMexicoCity()
+  const now = new Date()
   const busy = await busyIntervalsFrom(today)
 
   // Defaults that match how the panel is actually used: booking today, for the
@@ -25,7 +26,7 @@ export default async function NewAppointmentPage() {
     today,
     defaultService.durationMin,
     busy,
-    new Date()
+    now
   )
 
   return (
@@ -45,6 +46,7 @@ export default async function NewAppointmentPage() {
         services={bookableServices}
         busy={busy}
         today={today}
+        serverNowMs={now.getTime()}
         minDate={today}
         submitLabel="Guardar cita"
         initialValues={{

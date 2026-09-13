@@ -51,6 +51,7 @@ export default async function EditAppointmentPage({
         services={bookableServices}
         busy={busy}
         today={today}
+        serverNowMs={new Date().getTime()}
         // Not `today`: editing an appointment from last week must not be blocked
         // by the date input's own minimum.
         minDate={date < today ? date : today}

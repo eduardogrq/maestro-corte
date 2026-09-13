@@ -22,6 +22,21 @@ import type { AppointmentInput } from "./schemas"
 /** Travel time in CDMX is real; two appointments this close in different places is worth a warning. */
 const TRAVEL_BUFFER_MINUTES = 30
 
+/**
+ * How far into the past a start time may still be accepted.
+ *
+ * Not zero, and that matters: he taps the slot that starts right now and then
+ * spends a few minutes typing a name, a phone and an address. Rejecting that
+ * submit would throw away everything he wrote, standing in a client's doorway.
+ * Long enough to cover filling the form, short enough that yesterday or an hour
+ * ago never gets through.
+ */
+const PAST_GRACE_MINUTES = 15
+
+function startsInThePast(startsAt: Date): boolean {
+  return startsAt.getTime() < Date.now() - PAST_GRACE_MINUTES * 60_000
+}
+
 interface ResolvedSlot {
   serviceName: string
   priceMxn: number
@@ -175,6 +190,8 @@ export async function syncToCalendar(appointment: Appointment): Promise<void> {
 }
 
 export type CreateResult =
+  /** A real refusal, not a warning: no "guardar de todos modos" for these. */
+  | { kind: "rejected"; reason: string }
   | { kind: "warnings"; warnings: string[] }
   | { kind: "created"; appointment: Appointment }
 
@@ -189,6 +206,14 @@ export async function createAppointment(
   force: boolean
 ): Promise<CreateResult> {
   const slot = resolveSlot(input)
+
+  // The one hard stop in the whole flow, and `force` does not open it: a brand
+  // new appointment that starts in the past is never what he meant. The panel
+  // already greys those slots out, so reaching here means a stale screen or a
+  // mistyped date.
+  if (startsInThePast(slot.startsAt)) {
+    return { kind: "rejected", reason: "Esa hora ya pasó. Elige una más adelante." }
+  }
 
   if (!force) {
     const warnings = await collectWarnings(input, slot)
@@ -227,6 +252,7 @@ export async function createAppointment(
 }
 
 export type EditResult =
+  | { kind: "rejected"; reason: string }
   | { kind: "warnings"; warnings: string[] }
   | { kind: "updated"; appointment: Appointment }
 
@@ -235,7 +261,20 @@ export async function editAppointment(
   input: AppointmentInput,
   force: boolean
 ): Promise<EditResult> {
+  const existing = await repository.findAppointmentById(id)
+
+  if (!existing) {
+    throw new Error("La cita ya no existe.")
+  }
+
   const slot = resolveSlot(input)
+
+  // Correcting an appointment that already happened is legitimate — the address
+  // was wrong, or it really was at eleven and not at ten. Dragging a *future*
+  // appointment into the past is not.
+  if (startsInThePast(slot.startsAt) && !startsInThePast(existing.startsAt)) {
+    return { kind: "rejected", reason: "Esa hora ya pasó. Elige una más adelante." }
+  }
 
   if (!force) {
     const warnings = await collectWarnings(input, slot, id)

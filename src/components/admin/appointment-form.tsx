@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useMemo, useState } from "react"
+import { useActionState, useEffect, useMemo, useState } from "react"
 import type { AppointmentFormState } from "@/actions/appointments"
 import { Button } from "@/components/ui/button"
 import { Field } from "@/components/ui/field"
@@ -39,6 +39,8 @@ interface AppointmentFormProps {
   busy: BusyInterval[]
   initialValues: AppointmentFormValues
   today: string
+  /** Request time, in epoch ms. Comes from the server so render stays pure. */
+  serverNowMs: number
   /** Earliest selectable date. Editing an old appointment needs it below `today`. */
   minDate: string
   submitLabel: string
@@ -52,6 +54,7 @@ export function AppointmentForm({
   busy,
   initialValues,
   today,
+  serverNowMs,
   minDate,
   submitLabel,
   appointmentId,
@@ -81,6 +84,17 @@ export function AppointmentForm({
   // on the unique index instead of creating a second appointment.
   const [clientToken] = useState(() => crypto.randomUUID())
 
+  const [nowMs, setNowMs] = useState(serverNowMs)
+
+  // The form stays open while he talks to the client. Without this the slots that
+  // passed in the meantime would still look tappable, and the server would then
+  // refuse the submit for a reason that was never on screen.
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 60_000)
+
+    return () => clearInterval(timer)
+  }, [])
+
   const service = services.find((candidate) => candidate.id === serviceId)
 
   // Same function the server uses, so the preview can never promise a price or
@@ -89,8 +103,21 @@ export function AppointmentForm({
     ? resolveServiceTotals(service, { groupId, withBeard, firstVisit })
     : undefined
 
+  /**
+   * True when this form was opened on an appointment that had already started.
+   * That is history being corrected, not a booking, so every hour stays open —
+   * the same exception the server makes. Measured against the server's clock at
+   * load time, not the live one: it must not flip while he is typing.
+   */
+  const editingPast =
+    appointmentId !== undefined &&
+    initialValues.time !== "" &&
+    wallClockToUtc(initialValues.date, initialValues.time).getTime() < serverNowMs
+
   const slots = useMemo(() => {
     const durationMin = totals?.durationMin ?? 0
+
+    const closePastSlots = !editingPast && date >= today
 
     return slotsForDate(date, showExtendedHours).map((slot) => {
       const startsAt = wallClockToUtc(date, slot)
@@ -102,9 +129,15 @@ export function AppointmentForm({
         (interval) => startMs < interval.endMs && endMs > interval.startMs
       )
 
-      return { slot, conflict, startsAt, endsAt }
+      return {
+        slot,
+        conflict,
+        isPast: closePastSlots && startMs < nowMs,
+        startsAt,
+        endsAt,
+      }
     })
-  }, [busy, date, showExtendedHours, totals?.durationMin])
+  }, [busy, date, editingPast, nowMs, showExtendedHours, today, totals?.durationMin])
 
   const selected = slots.find((entry) => entry.slot === time)
 
@@ -288,24 +321,36 @@ export function AppointmentForm({
         <legend className="text-sm font-medium text-foreground">Hora</legend>
 
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {slots.map(({ slot, conflict }) => {
+          {slots.map(({ slot, conflict, isPast }) => {
             const isSelected = slot === time
+
+            // The selected chip is never disabled: if the clock crosses it while
+            // the form is open, his selection must not turn into a dead button.
+            const disabled = !isSelected && (Boolean(conflict) || isPast)
 
             return (
               <button
                 key={slot}
                 type="button"
-                disabled={Boolean(conflict)}
+                disabled={disabled}
                 onClick={() => setTime(slot)}
                 // The occupied slots carry the client's name so the whole day is
                 // readable at a glance, without leaving the form.
-                title={conflict ? `Ocupado: ${conflict.clientName}` : undefined}
+                title={
+                  conflict
+                    ? `Ocupado: ${conflict.clientName}`
+                    : isPast
+                      ? "Ya pasó"
+                      : undefined
+                }
                 className={`flex min-h-12 flex-col items-center justify-center rounded-xl border px-1 text-sm transition-colors duration-200 ${
                   isSelected
                     ? "border-foreground bg-foreground text-background"
                     : conflict
                       ? "cursor-not-allowed border-border bg-surface text-muted/70"
-                      : "border-border bg-background text-foreground hover:border-muted/50"
+                      : isPast
+                        ? "cursor-not-allowed border-border/60 bg-transparent text-muted/50"
+                        : "border-border bg-background text-foreground hover:border-muted/50"
                 }`}
               >
                 <span className={conflict ? "line-through" : undefined}>

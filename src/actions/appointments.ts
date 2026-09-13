@@ -67,6 +67,12 @@ export async function createAppointmentAction(
   try {
     const result = await createAppointment(parsed.data, clientToken, force)
 
+    // Surfaced as a field error, not as a warning: it lands right under the time
+    // chips, which is where he has to fix it.
+    if (result.kind === "rejected") {
+      return { values, fieldErrors: { time: result.reason } }
+    }
+
     if (result.kind === "warnings") {
       return { values, warnings: result.warnings }
     }
@@ -102,6 +108,10 @@ export async function editAppointmentAction(
 
   try {
     const result = await editAppointment(id, parsed.data, formData.get("force") === "1")
+
+    if (result.kind === "rejected") {
+      return { values, fieldErrors: { time: result.reason } }
+    }
 
     if (result.kind === "warnings") {
       return { values, warnings: result.warnings }
