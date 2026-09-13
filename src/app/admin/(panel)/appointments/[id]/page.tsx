@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { cancelAppointmentAction } from "@/actions/appointments"
+import { CancelAppointmentDialog } from "@/components/admin/cancel-appointment-dialog"
 import { SyncBadge } from "@/components/admin/sync-badge"
 import { WhatsAppButton } from "@/components/admin/whatsapp-button"
 import { Button } from "@/components/ui/button"
@@ -114,6 +114,14 @@ export default async function AppointmentDetailPage({
         </>
       )}
 
+      {/* This page is also where saving lands, so the way out has to be a button,
+          not just the small link up top. Shown for cancelled appointments too. */}
+      <Link href="/admin" className="block">
+        <Button variant="secondary" className="w-full">
+          Volver a la agenda
+        </Button>
+      </Link>
+
       {!isCancelled && (
         <div className="flex flex-col gap-3 border-t border-border pt-5">
           <Link href={`/admin/appointments/${appointment.id}/edit`}>
@@ -122,12 +130,11 @@ export default async function AppointmentDetailPage({
             </Button>
           </Link>
 
-          <form action={cancelAppointmentAction}>
-            <input type="hidden" name="id" value={appointment.id} />
-            <Button type="submit" variant="danger" className="w-full">
-              Cancelar cita
-            </Button>
-          </form>
+          <CancelAppointmentDialog
+            appointmentId={appointment.id}
+            clientName={appointment.clientName}
+            inCalendar={appointment.calendarSync === "synced"}
+          />
         </div>
       )}
     </div>

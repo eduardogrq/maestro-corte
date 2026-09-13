@@ -104,7 +104,9 @@ async function collectWarnings(
 
   for (const other of nearby) {
     if (overlappingIds.has(other.id)) continue
-    if (!other.address || !input.address) continue
+    // `other.address` can still be null: appointments saved before the address
+    // became required. Without both addresses there is no travel to compare.
+    if (!other.address) continue
     if (other.address.trim().toLowerCase() === input.address.trim().toLowerCase()) continue
 
     warnings.push(
@@ -209,7 +211,7 @@ export async function createAppointment(
     durationMin: slot.durationMin,
     startsAt: slot.startsAt,
     endsAt: slot.endsAt,
-    address: input.address ?? null,
+    address: input.address,
     notes: input.notes ?? null,
   })
 
@@ -253,7 +255,7 @@ export async function editAppointment(
     durationMin: slot.durationMin,
     startsAt: slot.startsAt,
     endsAt: slot.endsAt,
-    address: input.address ?? null,
+    address: input.address,
     notes: input.notes ?? null,
   })
 

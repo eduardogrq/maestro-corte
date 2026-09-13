@@ -61,7 +61,14 @@ export const appointmentInputSchema = z.object({
   date: z.string().regex(DATE_PATTERN, "Elige una fecha."),
   time: z.string().regex(TIME_PATTERN, "Elige una hora."),
 
-  address: optionalText(200),
+  // Required: it goes into the Calendar event and the WhatsApp message, and a
+  // visit with no address is not a bookable visit.
+  address: z
+    .string()
+    .trim()
+    .min(1, "Escribe la dirección.")
+    .max(200, "Máximo 200 caracteres."),
+
   notes: optionalText(500),
 })
 

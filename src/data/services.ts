@@ -147,7 +147,6 @@ export const groupOptions: GroupOption[] = [
   {
     id: "padre-hijo",
     label: "Padre e hijo",
-    hint: "adulto y niño",
     peopleCount: 2,
     price: { regularMxn: 449, firstVisitMxn: 409 },
   },

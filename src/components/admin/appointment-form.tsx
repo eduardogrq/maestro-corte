@@ -101,6 +101,22 @@ export function AppointmentForm({
 
   const selected = slots.find((entry) => entry.slot === time)
 
+  // Warnings describe the slot that was *submitted*. If he moved the appointment
+  // after reading them, they no longer apply — dropping them brings the normal
+  // save button back and stops "Guardar de todos modos" from forcing a slot
+  // nobody warned about.
+  const warningsApplyToCurrentSlot =
+    state.values !== undefined &&
+    state.values.date === date &&
+    state.values.time === time &&
+    state.values.serviceId === serviceId &&
+    state.values.groupId === groupId &&
+    (state.values.withBeard === "1") === withBeard &&
+    (state.values.firstVisit === "1") === firstVisit
+
+  const warnings =
+    state.warnings && warningsApplyToCurrentSlot ? state.warnings : []
+
   return (
     <form action={formAction} className="flex flex-col gap-6">
       {appointmentId && <input type="hidden" name="id" value={appointmentId} />}
@@ -322,7 +338,6 @@ export function AppointmentForm({
       <Field
         htmlFor="address"
         label="Dirección"
-        optional
         hint="Aparece en el calendario y en el mensaje de WhatsApp."
         error={state.fieldErrors?.address}
       >
@@ -355,24 +370,29 @@ export function AppointmentForm({
         </p>
       )}
 
-      {/* Warnings, not blocks: nothing was written yet, and he decides. */}
-      {state.warnings && state.warnings.length > 0 && (
+      {/* Warnings, not blocks: nothing was written yet, and he decides. While they
+          are on screen this *replaces* the normal save button — leaving both would
+          show a button that resubmits, gets the same warnings back and looks broken. */}
+      {warnings.length > 0 ? (
         <div className="flex flex-col gap-3 rounded-xl border border-warning/40 bg-warning/5 px-4 py-4">
           <p className="text-sm font-medium text-foreground">Revisa antes de guardar:</p>
           <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-foreground">
-            {state.warnings.map((warning) => (
+            {warnings.map((warning) => (
               <li key={warning}>{warning}</li>
             ))}
           </ul>
-          <Button type="submit" name="force" value="1" variant="secondary" disabled={pending}>
-            Guardar de todos modos
+          <p className="text-sm text-muted">
+            Cambia la hora arriba, o guárdala así si tú lo tienes cubierto.
+          </p>
+          <Button type="submit" name="force" value="1" size="lg" disabled={pending}>
+            {pending ? "Guardando…" : "Guardar de todos modos"}
           </Button>
         </div>
+      ) : (
+        <Button type="submit" size="lg" disabled={pending || !time}>
+          {pending ? "Guardando…" : submitLabel}
+        </Button>
       )}
-
-      <Button type="submit" size="lg" disabled={pending || !time}>
-        {pending ? "Guardando…" : submitLabel}
-      </Button>
     </form>
   )
 }
