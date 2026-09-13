@@ -46,6 +46,13 @@ export const business = {
     { open: "10:00", close: "20:00" }, // sábado
   ],
 
+  /**
+   * The widest range Diego will ever work — earlier or later than what the site
+   * publishes, for the client who can only at 7am or after work. Not shown to
+   * the public: the panel unlocks these hours only when he asks for them.
+   */
+  extendedBookingHours: { open: "07:00", close: "22:00" },
+
   // TODO: Replace with real price range
   priceRange: "$$",
 

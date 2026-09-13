@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { business } from "@/data/business"
 import { BEARD_EXTRA, groupOptions, resolveServiceTotals } from "@/data/services"
 import type { BookableService } from "@/types"
 import {
@@ -70,6 +71,12 @@ export function AppointmentForm({
   const [withBeard, setWithBeard] = useState(values.withBeard === "1")
   const [firstVisit, setFirstVisit] = useState(values.firstVisit === "1")
 
+  // Starts on when the time already saved is an unusual one: editing a 7am
+  // appointment has to show the chip it is sitting on, not an empty selection.
+  const [showExtendedHours, setShowExtendedHours] = useState(
+    () => values.time !== "" && !slotsForDate(values.date).includes(values.time)
+  )
+
   // One token per mounted form: a double tap resubmits the same one and collides
   // on the unique index instead of creating a second appointment.
   const [clientToken] = useState(() => crypto.randomUUID())
@@ -85,7 +92,7 @@ export function AppointmentForm({
   const slots = useMemo(() => {
     const durationMin = totals?.durationMin ?? 0
 
-    return slotsForDate(date).map((slot) => {
+    return slotsForDate(date, showExtendedHours).map((slot) => {
       const startsAt = wallClockToUtc(date, slot)
       const endsAt = addMinutes(startsAt, durationMin)
       const startMs = startsAt.getTime()
@@ -97,7 +104,7 @@ export function AppointmentForm({
 
       return { slot, conflict, startsAt, endsAt }
     })
-  }, [busy, date, totals?.durationMin])
+  }, [busy, date, showExtendedHours, totals?.durationMin])
 
   const selected = slots.find((entry) => entry.slot === time)
 
@@ -313,6 +320,34 @@ export function AppointmentForm({
             )
           })}
         </div>
+
+        {/* Not a hidden input: which hours are *shown* is a decision about this
+            screen, and the server infers the intent from the time itself. */}
+        <label className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-border bg-background px-4 py-3 transition-colors duration-200 hover:border-muted/50">
+          <input
+            type="checkbox"
+            checked={showExtendedHours}
+            onChange={(event) => {
+              const next = event.target.checked
+              setShowExtendedHours(next)
+
+              // Folding the list back up must not leave a time selected whose
+              // chip is no longer on screen.
+              if (!next && time && !slotsForDate(date).includes(time)) {
+                setTime("")
+              }
+            }}
+            className="size-5 shrink-0 accent-accent"
+          />
+          <span className="text-base text-foreground">
+            Horarios especiales
+            <span className="text-muted">
+              {" · "}
+              {formatWallClockTime(business.extendedBookingHours.open)} a{" "}
+              {formatWallClockTime(business.extendedBookingHours.close)}
+            </span>
+          </span>
+        </label>
 
         {state.fieldErrors?.time && (
           <p className="text-sm text-danger" role="alert">

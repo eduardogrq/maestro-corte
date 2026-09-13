@@ -2,10 +2,10 @@ import "server-only"
 import { findBookableService, resolveServiceTotals } from "@/data/services"
 import {
   addMinutes,
-  endsAfterClosing,
+  bookingWindowForTime,
+  endsAfter,
   formatTime,
   formatTimeRange,
-  hoursForDate,
   todayInMexicoCity,
   wallClockToUtc,
 } from "@/lib/datetime"
@@ -72,12 +72,14 @@ async function collectWarnings(
     warnings.push("La fecha ya pasó.")
   }
 
-  const { open, close } = hoursForDate(input.date)
+  // Judged against the extended hours when he picked an unusual time on purpose,
+  // against the published ones otherwise. See `bookingWindowForTime`.
+  const { open, close } = bookingWindowForTime(input.date, input.time)
 
   if (input.time < open || input.time >= close) {
-    warnings.push(`Fuera del horario de ese día (${open} a ${close}).`)
-  } else if (endsAfterClosing(input.date, input.time, slot.durationMin)) {
-    warnings.push(`La cita termina después del cierre (${close}).`)
+    warnings.push(`Fuera de horario, incluso el extendido (${open} a ${close}).`)
+  } else if (endsAfter(input.time, slot.durationMin, close)) {
+    warnings.push(`La cita termina después de las ${close}.`)
   }
 
   const overlapping = await repository.findOverlapping(

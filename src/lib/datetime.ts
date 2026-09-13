@@ -179,17 +179,45 @@ function minutesToTime(minutes: number): string {
   return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
 }
 
-export function hoursForDate(date: string): { open: string; close: string } {
+export interface BookingWindow {
+  open: string
+  close: string
+}
+
+/** The hours published on the site for that weekday. */
+export function hoursForDate(date: string): BookingWindow {
   // bookingHours covers all 7 days, so this is always defined.
   return business.bookingHours[dayOfWeek(date)]
 }
 
 /**
+ * Which hours a chosen time should be judged against. A time inside the
+ * published hours is judged against those, so "termina después del cierre" keeps
+ * working as before. Anything earlier or later can only have been picked by
+ * deliberately unlocking the extended range in the form, so judging it against
+ * the published hours would be telling him something he already knows.
+ */
+export function bookingWindowForTime(date: string, time: string): BookingWindow {
+  const published = hoursForDate(date)
+
+  if (time >= published.open && time < published.close) {
+    return published
+  }
+
+  return business.extendedBookingHours
+}
+
+/**
  * Bookable start times for a date, every SLOT_MINUTES from opening until the
  * last slot that still starts before closing.
+ *
+ * `extended` widens the list to the earliest and latest he is ever willing to
+ * work, for the special hours he agrees to now and then.
  */
-export function slotsForDate(date: string): string[] {
-  const { open, close } = hoursForDate(date)
+export function slotsForDate(date: string, extended = false): string[] {
+  const { open, close } = extended
+    ? business.extendedBookingHours
+    : hoursForDate(date)
   const slots: string[] = []
 
   for (
@@ -203,13 +231,11 @@ export function slotsForDate(date: string): string[] {
   return slots
 }
 
-/** True when the appointment would run past closing time. Warning, not a block. */
-export function endsAfterClosing(
-  date: string,
+/** True when the appointment would run past `close`. Warning, not a block. */
+export function endsAfter(
   time: string,
-  durationMin: number
+  durationMin: number,
+  close: string
 ): boolean {
-  return (
-    timeToMinutes(time) + durationMin > timeToMinutes(hoursForDate(date).close)
-  )
+  return timeToMinutes(time) + durationMin > timeToMinutes(close)
 }
