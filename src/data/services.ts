@@ -105,25 +105,84 @@ export const packages: Package[] = [
   },
 ]
 
+const HAIRCUT_ID = "corte"
+
+/**
+ * Landing services that are one and the same booking: same $279, same hour
+ * blocked. They stay separate up there, where naming the technique is what sells
+ * and what people search for. In the panel, choosing between them would be a tap
+ * that changes nothing.
+ */
+const HAIRCUT_SOURCE_IDS: readonly string[] = ["corte-clasico", "fade", "corte-tijera"]
+
+function bookableFrom(id: string): BookableService {
+  const service = services.find((candidate) => candidate.id === id)
+
+  // Thrown while the module evaluates, like env.ts: a renamed id has to break the
+  // build instead of quietly dropping a service from the panel.
+  if (!service) {
+    throw new Error(`Servicio desconocido en el catálogo: ${id}`)
+  }
+
+  return {
+    id: service.id,
+    name: service.name,
+    durationMin: service.durationMin,
+    priceMxn: service.priceMxn,
+    firstVisitPriceMxn: service.firstVisitPriceMxn,
+  }
+}
+
+/**
+ * Merging the three only holds while they really are interchangeable. Repricing
+ * one haircut on the landing breaks the build here instead of letting the panel
+ * quote a number the page no longer shows.
+ */
+function unifiedHaircut(): BookableService {
+  const [first, ...rest] = HAIRCUT_SOURCE_IDS.map(bookableFrom)
+
+  for (const other of rest) {
+    if (
+      other.priceMxn !== first.priceMxn ||
+      other.firstVisitPriceMxn !== first.firstVisitPriceMxn ||
+      other.durationMin !== first.durationMin
+    ) {
+      throw new Error(
+        `"${other.name}" ya no cuesta o dura lo mismo que "${first.name}". Sepáralo del corte unificado en bookableServices.`
+      )
+    }
+  }
+
+  return { ...first, id: HAIRCUT_ID, name: "Corte de cabello" }
+}
+
 /**
  * The base service picked in the panel. The landing's packages are deliberately
  * absent: "Corte + Barba", "Padre e hijo" and "Amigos" are combinations of a
  * base service plus the options below, which also cover what a fixed list never
- * could — a fade for two friends, one of them with beard. Offering both would
+ * could — a haircut for two friends, one of them with beard. Offering both would
  * let the barber charge the beard twice.
  */
-export const bookableServices: BookableService[] = services.map(
-  ({ id, name, durationMin, priceMxn, firstVisitPriceMxn }) => ({
-    id,
-    name,
-    durationMin,
-    priceMxn,
-    firstVisitPriceMxn,
-  })
-)
+export const bookableServices: BookableService[] = [
+  unifiedHaircut(),
+  bookableFrom("barba"),
+  bookableFrom("barba-express"),
+  bookableFrom("ninos"),
+]
+
+/**
+ * Appointments saved before the merge still carry the id of the specific haircut
+ * they were booked as. Same price and same duration, so they resolve to the
+ * unified option instead of leaving the edit form with no service selected.
+ */
+export function toBookableServiceId(id: string): string {
+  return HAIRCUT_SOURCE_IDS.includes(id) ? HAIRCUT_ID : id
+}
 
 export function findBookableService(id: string): BookableService | undefined {
-  return bookableServices.find((service) => service.id === id)
+  return bookableServices.find(
+    (service) => service.id === toBookableServiceId(id)
+  )
 }
 
 /**

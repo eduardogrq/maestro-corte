@@ -3,7 +3,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { editAppointmentAction } from "@/actions/appointments"
 import { AppointmentForm } from "@/components/admin/appointment-form"
-import { bookableServices } from "@/data/services"
+import { bookableServices, toBookableServiceId } from "@/data/services"
 import { todayInMexicoCity, utcToWallClock } from "@/lib/datetime"
 import { busyIntervalsFrom } from "@/server/appointments/busy"
 import { findAppointmentById } from "@/server/appointments/repository"
@@ -58,7 +58,9 @@ export default async function EditAppointmentPage({
         initialValues={{
           clientName: appointment.clientName,
           clientPhone: appointment.clientPhone,
-          serviceId: appointment.serviceId,
+          // An appointment booked as "Fade" predates the unified haircut; without
+          // this the select would open with nothing selected.
+          serviceId: toBookableServiceId(appointment.serviceId),
           groupId: appointment.groupId,
           withBeard: appointment.withBeard ? "1" : "0",
           firstVisit: appointment.firstVisit ? "1" : "0",
