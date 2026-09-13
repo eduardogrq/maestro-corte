@@ -1,6 +1,9 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { createAppointmentAction } from "@/actions/appointments"
+import {
+  createAppointmentAction,
+  searchClientsAction,
+} from "@/actions/appointments"
 import { AppointmentForm } from "@/components/admin/appointment-form"
 import { bookableServices } from "@/data/services"
 import { slotsForDate, todayInMexicoCity } from "@/lib/datetime"
@@ -43,6 +46,7 @@ export default async function NewAppointmentPage() {
 
       <AppointmentForm
         action={createAppointmentAction}
+        searchClients={searchClientsAction}
         services={bookableServices}
         busy={busy}
         today={today}

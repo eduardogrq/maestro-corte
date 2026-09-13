@@ -1,7 +1,10 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { editAppointmentAction } from "@/actions/appointments"
+import {
+  editAppointmentAction,
+  searchClientsAction,
+} from "@/actions/appointments"
 import { AppointmentForm } from "@/components/admin/appointment-form"
 import { bookableServices, toBookableServiceId } from "@/data/services"
 import { todayInMexicoCity, utcToWallClock } from "@/lib/datetime"
@@ -47,6 +50,7 @@ export default async function EditAppointmentPage({
 
       <AppointmentForm
         action={editAppointmentAction}
+        searchClients={searchClientsAction}
         appointmentId={appointment.id}
         services={bookableServices}
         busy={busy}

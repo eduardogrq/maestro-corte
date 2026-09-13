@@ -1,7 +1,9 @@
 import "server-only"
-import { and, asc, eq, gt, gte, lt, lte, ne } from "drizzle-orm"
+import { and, asc, desc, eq, gt, gte, like, lt, lte, ne } from "drizzle-orm"
+import { utcToWallClock } from "@/lib/datetime"
 import { db } from "@/server/db"
 import { appointments, type Appointment, type NewAppointment } from "@/server/db/schema"
+import type { ClientSuggestion } from "@/types"
 
 /**
  * Inserts, or returns the row that already exists for this `clientToken`.
@@ -128,6 +130,48 @@ export async function findNearby(
     .from(appointments)
     .where(and(...conditions))
     .orderBy(asc(appointments.startsAt))
+}
+
+/**
+ * Clients whose phone contains `digits`, one row each, carrying the details of
+ * their most recent visit. Cancelled appointments count: the client is still a
+ * client, and their address is still their address.
+ *
+ * Matched by phone rather than by name because the phone is the only thing that
+ * is actually unique — twenty clients can be called Emmanuel.
+ *
+ * `DISTINCT ON (client_phone)` needs to be ordered by phone to pick a row per
+ * phone, so the recency ordering has to happen in the outer query.
+ */
+export async function searchClientsByPhone(
+  digits: string,
+  limit: number
+): Promise<ClientSuggestion[]> {
+  const latestPerClient = db
+    .selectDistinctOn([appointments.clientPhone], {
+      clientName: appointments.clientName,
+      clientPhone: appointments.clientPhone,
+      address: appointments.address,
+      startsAt: appointments.startsAt,
+    })
+    .from(appointments)
+    // Digits only, so `%` and `_` can never reach the pattern as wildcards.
+    .where(like(appointments.clientPhone, `%${digits}%`))
+    .orderBy(appointments.clientPhone, desc(appointments.startsAt))
+    .as("latest_per_client")
+
+  const rows = await db
+    .select()
+    .from(latestPerClient)
+    .orderBy(desc(latestPerClient.startsAt))
+    .limit(limit)
+
+  return rows.map((row) => ({
+    clientName: row.clientName,
+    clientPhone: row.clientPhone,
+    address: row.address,
+    lastVisitDate: utcToWallClock(row.startsAt).date,
+  }))
 }
 
 /** The next appointment from now on, used to preselect a sensible time. */

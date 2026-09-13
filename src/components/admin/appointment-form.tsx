@@ -9,10 +9,12 @@ import { Select } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { business } from "@/data/business"
 import { BEARD_EXTRA, groupOptions, resolveServiceTotals } from "@/data/services"
-import type { BookableService } from "@/types"
+import { formatMxPhone } from "@/lib/phone"
+import type { BookableService, ClientSuggestion } from "@/types"
 import {
   addDaysToDateString,
   addMinutes,
+  formatDateShort,
   formatPriceMxn,
   formatTimeRange,
   formatWallClockTime,
@@ -33,8 +35,16 @@ type FormAction = (
   formData: FormData
 ) => Promise<AppointmentFormState>
 
+/** Four digits is where guessing stops and searching starts. */
+const MIN_SEARCH_DIGITS = 4
+
+/** Long enough that one-thumb typing isn't a round trip per keystroke. */
+const SEARCH_DEBOUNCE_MS = 250
+
 interface AppointmentFormProps {
   action: FormAction
+  /** Looks up clients who have booked before by phone number, for autofill. */
+  searchClients: (term: string) => Promise<ClientSuggestion[]>
   services: BookableService[]
   busy: BusyInterval[]
   initialValues: AppointmentFormValues
@@ -50,6 +60,7 @@ interface AppointmentFormProps {
 
 export function AppointmentForm({
   action,
+  searchClients,
   services,
   busy,
   initialValues,
@@ -67,6 +78,12 @@ export function AppointmentForm({
   // lost; before that, the initial values win.
   const values = state.values ?? initialValues
 
+  // Controlled, unlike the rest of the text fields: picking a returning client
+  // has to be able to write into them.
+  const [clientName, setClientName] = useState(values.clientName)
+  const [clientPhone, setClientPhone] = useState(values.clientPhone)
+  const [address, setAddress] = useState(values.address)
+
   const [date, setDate] = useState(values.date)
   const [time, setTime] = useState(values.time)
   const [serviceId, setServiceId] = useState(values.serviceId)
@@ -83,6 +100,60 @@ export function AppointmentForm({
   // One token per mounted form: a double tap resubmits the same one and collides
   // on the unique index instead of creating a second appointment.
   const [clientToken] = useState(() => crypto.randomUUID())
+
+  // Results carry the term they answer, so a reply that lands after he kept
+  // typing is simply ignored instead of flashing the wrong client on screen.
+  const [found, setFound] = useState<{ term: string; clients: ClientSuggestion[] }>({
+    term: "",
+    clients: [],
+  })
+
+  // Set the moment he picks someone, so the list doesn't pop straight back up on
+  // top of the number it just filled in. Typing again is what reopens it.
+  const [suggestionsClosed, setSuggestionsClosed] = useState(false)
+
+  // Searched by phone, not by name: the phone is the only field that identifies
+  // one person. Digits only, so "55 1234" and "551234" are the same search.
+  const searchTerm = clientPhone.replace(/\D/g, "")
+  const canSearch = !suggestionsClosed && searchTerm.length >= MIN_SEARCH_DIGITS
+  const suggestions = canSearch && found.term === searchTerm ? found.clients : []
+
+  useEffect(() => {
+    if (!canSearch) return
+
+    let active = true
+
+    const timer = setTimeout(() => {
+      searchClients(searchTerm)
+        .then((clients) => {
+          if (active) setFound({ term: searchTerm, clients })
+        })
+        // A failed lookup is not worth an error message: he can still type the
+        // address by hand, which is what he did until now.
+        .catch(() => {
+          if (active) setFound({ term: searchTerm, clients: [] })
+        })
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => {
+      active = false
+      clearTimeout(timer)
+    }
+  }, [canSearch, searchClients, searchTerm])
+
+  function applySuggestion(suggestion: ClientSuggestion) {
+    setClientName(suggestion.clientName)
+    // Shown the way he reads it, not the canonical 52##########.
+    setClientPhone(formatMxPhone(suggestion.clientPhone))
+
+    // Old appointments may have no address; keeping whatever is typed beats
+    // clearing the field.
+    if (suggestion.address) {
+      setAddress(suggestion.address)
+    }
+
+    setSuggestionsClosed(true)
+  }
 
   const [nowMs, setNowMs] = useState(serverNowMs)
 
@@ -165,6 +236,67 @@ export function AppointmentForm({
       <input type="hidden" name="time" value={time} />
       <input type="hidden" name="groupId" value={groupId} />
 
+      {/* Phone first, above the name: it is what he asks the client for, and
+          typing it is what fills in everything else. */}
+      {/* Tighter than the form's own gap-6: the suggestions belong to the field
+          above them, and 24px of air would read as a separate section. */}
+      <div className="flex flex-col gap-2">
+        <Field
+          htmlFor="clientPhone"
+          label="WhatsApp"
+          hint="Si ya vino antes, escribe su número y aparece abajo."
+          error={state.fieldErrors?.clientPhone}
+        >
+          <Input
+            id="clientPhone"
+            name="clientPhone"
+            // `tel` + numeric keypad: no letters needed, and iOS shows big keys.
+            type="tel"
+            inputMode="numeric"
+            // Off on purpose: the browser's own history knows nothing about his
+            // clients, and these suggestions do.
+            autoComplete="off"
+            value={clientPhone}
+            onChange={(event) => {
+              setClientPhone(event.target.value)
+              // Typing again means he's looking for someone else.
+              setSuggestionsClosed(false)
+            }}
+            invalid={Boolean(state.fieldErrors?.clientPhone)}
+            placeholder="55 1234 5678"
+          />
+        </Field>
+
+        {suggestions.length > 0 && (
+          <ul className="flex flex-col gap-1 rounded-xl border border-border bg-surface/50 p-1">
+            {suggestions.map((suggestion) => (
+              <li key={suggestion.clientPhone}>
+                <button
+                  type="button"
+                  onClick={() => applySuggestion(suggestion)}
+                  className="flex min-h-12 w-full flex-col items-start justify-center gap-0.5 rounded-lg px-3 py-2 text-left transition-colors duration-200 hover:bg-background"
+                >
+                  <span className="text-base text-foreground">
+                    {suggestion.clientName}
+                    <span className="text-muted">
+                      {" · "}
+                      {formatMxPhone(suggestion.clientPhone)}
+                    </span>
+                  </span>
+                  {/* The address: it is the thing he came here for. */}
+                  {suggestion.address && (
+                    <span className="text-sm text-muted">{suggestion.address}</span>
+                  )}
+                  <span className="text-xs text-muted">
+                    última cita {formatDateShort(suggestion.lastVisitDate)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       <Field
         htmlFor="clientName"
         label="Nombre del cliente"
@@ -173,31 +305,12 @@ export function AppointmentForm({
         <Input
           id="clientName"
           name="clientName"
-          defaultValue={values.clientName}
-          autoComplete="off"
+          value={clientName}
+          onChange={(event) => setClientName(event.target.value)}
           autoCapitalize="words"
           enterKeyHint="next"
           invalid={Boolean(state.fieldErrors?.clientName)}
           placeholder="Juan Pérez"
-        />
-      </Field>
-
-      <Field
-        htmlFor="clientPhone"
-        label="WhatsApp"
-        hint="10 dígitos, como 55 1234 5678."
-        error={state.fieldErrors?.clientPhone}
-      >
-        <Input
-          id="clientPhone"
-          name="clientPhone"
-          // `tel` + numeric keypad: no letters needed, and iOS shows big keys.
-          type="tel"
-          inputMode="numeric"
-          autoComplete="tel"
-          defaultValue={values.clientPhone}
-          invalid={Boolean(state.fieldErrors?.clientPhone)}
-          placeholder="55 1234 5678"
         />
       </Field>
 
@@ -425,7 +538,8 @@ export function AppointmentForm({
           id="address"
           name="address"
           rows={2}
-          defaultValue={values.address}
+          value={address}
+          onChange={(event) => setAddress(event.target.value)}
           autoCapitalize="sentences"
           invalid={Boolean(state.fieldErrors?.address)}
           placeholder="Calle, número, colonia, referencias"

@@ -46,6 +46,21 @@ export interface BookableService {
   firstVisitPriceMxn: number
 }
 
+/**
+ * A client the barber has visited before, as remembered by his own appointments.
+ * There is no clients table: the appointment history *is* the client list, so
+ * recognising a returning client costs no extra bookkeeping at all.
+ */
+export interface ClientSuggestion {
+  clientName: string
+  /** Canonical `52##########`, ready to drop straight into the form. */
+  clientPhone: string
+  /** Null only for appointments saved before the address became required. */
+  address: string | null
+  /** Wall-clock date of the last visit, "YYYY-MM-DD", so he can see how long ago. */
+  lastVisitDate: string
+}
+
 /** How many clients share one visit, and what that visit costs as a package. */
 export interface GroupOption {
   id: string

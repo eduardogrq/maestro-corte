@@ -10,7 +10,10 @@ import {
   editAppointment,
   syncToCalendar,
 } from "@/server/appointments/service"
-import { findAppointmentById } from "@/server/appointments/repository"
+import {
+  findAppointmentById,
+  searchClientsByPhone,
+} from "@/server/appointments/repository"
 import {
   appointmentInputSchema,
   readFormValues,
@@ -18,6 +21,7 @@ import {
   type AppointmentFormValues,
   type FieldErrors,
 } from "@/server/appointments/schemas"
+import type { ClientSuggestion } from "@/types"
 
 export interface AppointmentFormState {
   /** Echoed back so a failed submit never wipes what was typed. */
@@ -123,6 +127,33 @@ export async function editAppointmentAction(
   revalidatePath("/admin")
   revalidatePath(`/admin/appointments/${id}`)
   redirect(`/admin/appointments/${id}`)
+}
+
+/**
+ * Four digits is where the guessing stops and the searching starts. Fewer would
+ * match half the agenda; four is also the last block of a number, which is the
+ * part he can read off a WhatsApp chat without scrolling up.
+ */
+const MIN_SEARCH_DIGITS = 4
+
+/** Enough to recognise the right client, few enough to read without scrolling. */
+const MAX_SUGGESTIONS = 5
+
+/**
+ * Autofill for returning clients, looked up by phone number. Read-only and
+ * behind the session, like every other action here — this returns real client
+ * names, phones and home addresses.
+ */
+export async function searchClientsAction(term: string): Promise<ClientSuggestion[]> {
+  await requireSession()
+
+  const digits = term.replace(/\D/g, "")
+
+  if (digits.length < MIN_SEARCH_DIGITS) {
+    return []
+  }
+
+  return searchClientsByPhone(digits, MAX_SUGGESTIONS)
 }
 
 export async function cancelAppointmentAction(formData: FormData): Promise<void> {
