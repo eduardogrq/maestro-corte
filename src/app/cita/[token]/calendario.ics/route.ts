@@ -1,14 +1,10 @@
-import { business } from "@/data/business"
-import { formatPriceMxn } from "@/lib/datetime"
+import { buildAppointmentCalendarEvent } from "@/lib/appointment-calendar"
 import { buildIcsFile } from "@/lib/ics"
 import {
   buildPublicAppointmentUrl,
   readPublicToken,
 } from "@/server/appointments/public-link"
 import { findAppointmentById } from "@/server/appointments/repository"
-
-/** Same host the public link uses, so the UID is stable and unambiguous. */
-const UID_DOMAIN = new URL(business.url).host
 
 /** Never cached: the file has to reflect the appointment as it stands right now. */
 export const dynamic = "force-dynamic"
@@ -41,29 +37,20 @@ export async function GET(
     return notFound()
   }
 
-  const descriptionLines = [
-    `${appointment.serviceName} con ${business.owner}.`,
-    `Costo: ${formatPriceMxn(appointment.priceMxn)}`,
-    "",
-    `Ver tu cita: ${buildPublicAppointmentUrl(appointment.id)}`,
-    `WhatsApp: +${business.whatsapp.number}`,
-  ]
-
-  const file = buildIcsFile({
-    uid: `${appointment.id}@${UID_DOMAIN}`,
-    summary: `${appointment.serviceName} con ${business.owner}`,
-    description: descriptionLines.join("\n"),
-    location: appointment.address ?? undefined,
-    startsAt: appointment.startsAt,
-    endsAt: appointment.endsAt,
-  })
+  const file = buildIcsFile(
+    buildAppointmentCalendarEvent(
+      appointment,
+      buildPublicAppointmentUrl(appointment.id)
+    )
+  )
 
   return new Response(file, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      // `inline` on purpose: iPhone opens the event straight in Calendar, while
-      // Android downloads it either way because it can't render the type.
-      "Content-Disposition": 'inline; filename="cita-maestro-corte.ics"',
+      // `attachment`, never `inline`: with `inline` WhatsApp's in-app browser
+      // renders the raw VCALENDAR text on screen instead of handing the file to
+      // the Calendar app.
+      "Content-Disposition": 'attachment; filename="cita-maestro-corte.ics"',
       "Cache-Control": "no-store",
     },
   })

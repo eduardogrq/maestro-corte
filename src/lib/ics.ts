@@ -14,8 +14,11 @@ export interface CalendarFileEvent {
   endsAt: Date
 }
 
-/** "2026-09-15T16:30:00.000Z" → "20260915T163000Z". UTC, so no VTIMEZONE needed. */
-function toIcsInstant(instant: Date): string {
+/**
+ * "2026-09-15T16:30:00.000Z" → "20260915T163000Z". UTC, so no VTIMEZONE needed.
+ * Google Calendar's `dates` parameter wants this exact shape too.
+ */
+export function toIcsInstant(instant: Date): string {
   return `${instant.toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`
 }
 

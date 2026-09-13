@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import { business } from "@/data/business"
+import { buildGoogleCalendarUrl } from "@/lib/appointment-calendar"
 import {
   formatDayLong,
   formatPriceMxn,
@@ -11,7 +12,10 @@ import {
 } from "@/lib/datetime"
 import { buildWhatsAppUrl } from "@/lib/phone"
 import { buildMapsUrl } from "@/lib/maps"
-import { readPublicToken } from "@/server/appointments/public-link"
+import {
+  buildPublicAppointmentUrl,
+  readPublicToken,
+} from "@/server/appointments/public-link"
 import { findAppointmentById } from "@/server/appointments/repository"
 
 /**
@@ -30,6 +34,15 @@ export const metadata: Metadata = {
  * after Diego moves or cancels the appointment, which a cached copy would.
  */
 export const dynamic = "force-dynamic"
+
+/**
+ * Written out instead of reusing the panel's `Button`: that one is a `<button>`,
+ * and every action here is a link. 56px tall, because this is read on a phone.
+ */
+const buttonBase =
+  "inline-flex min-h-14 w-full items-center justify-center rounded-full px-6 text-base font-medium transition-colors duration-200"
+const primaryButton = `${buttonBase} bg-foreground text-background hover:bg-foreground/90`
+const secondaryButton = `${buttonBase} border border-border bg-background text-foreground hover:bg-surface`
 
 /**
  * Outside the `(site)` route group on purpose: that layout's header links to
@@ -59,7 +72,13 @@ export default async function PublicAppointmentPage({
   // Compared as Mexico City calendar days, not instants: an appointment earlier
   // today still reads as today's, which is what the client expects.
   const isPast = date < todayInMexicoCity()
+  // The only state where adding it to a calendar means anything.
+  const isUpcoming = !isCancelled && !isPast
   const firstName = appointment.clientName.trim().split(/\s+/)[0]
+  const googleCalendarUrl = buildGoogleCalendarUrl(
+    appointment,
+    buildPublicAppointmentUrl(appointment.id)
+  )
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col gap-8 px-5 py-10">
@@ -130,15 +149,29 @@ export default async function PublicAppointmentPage({
       </dl>
 
       <div className="flex flex-col gap-3">
-        {/* Only while there is still something to remember. A plain `.ics`
-            download, so it works on Android and iPhone without signing in. */}
-        {!isCancelled && !isPast && (
-          <a
-            href={`/cita/${token}/calendario.ics`}
-            className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors duration-200 hover:bg-foreground/90"
-          >
-            Agregar a mi calendario
-          </a>
+        {/* Two paths on purpose. Most clients open this from WhatsApp's in-app
+            browser, where a file download is unreliable on iPhone: the Google
+            link is a plain navigation and always works, and the `.ics` covers
+            everyone who doesn't use Google Calendar. */}
+        {isUpcoming && (
+          <>
+            <a
+              href={googleCalendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={primaryButton}
+            >
+              Agregar a Google Calendar
+            </a>
+
+            <a
+              href={`/cita/${token}/calendario.ics`}
+              download="cita-maestro-corte.ics"
+              className={secondaryButton}
+            >
+              Agregar al calendario del iPhone
+            </a>
+          </>
         )}
 
         <a
@@ -148,13 +181,9 @@ export default async function PublicAppointmentPage({
           )}
           target="_blank"
           rel="noopener noreferrer"
-          className={
-            isCancelled || isPast
-              ? "inline-flex min-h-14 w-full items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors duration-200 hover:bg-foreground/90"
-              : "inline-flex min-h-14 w-full items-center justify-center rounded-full border border-border bg-background px-6 text-base font-medium text-foreground transition-colors duration-200 hover:bg-surface"
-          }
+          className={isUpcoming ? secondaryButton : primaryButton}
         >
-          {isCancelled || isPast ? "Escribir por WhatsApp" : "Cambiar o cancelar"}
+          {isUpcoming ? "Cambiar o cancelar" : "Escribir por WhatsApp"}
         </a>
 
         <p className="text-center text-sm text-muted">
