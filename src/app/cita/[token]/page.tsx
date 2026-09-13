@@ -130,6 +130,17 @@ export default async function PublicAppointmentPage({
       </dl>
 
       <div className="flex flex-col gap-3">
+        {/* Only while there is still something to remember. A plain `.ics`
+            download, so it works on Android and iPhone without signing in. */}
+        {!isCancelled && !isPast && (
+          <a
+            href={`/cita/${token}/calendario.ics`}
+            className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors duration-200 hover:bg-foreground/90"
+          >
+            Agregar a mi calendario
+          </a>
+        )}
+
         <a
           href={buildWhatsAppUrl(
             business.whatsapp.number,
@@ -137,7 +148,11 @@ export default async function PublicAppointmentPage({
           )}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors duration-200 hover:bg-foreground/90"
+          className={
+            isCancelled || isPast
+              ? "inline-flex min-h-14 w-full items-center justify-center rounded-full bg-foreground px-6 text-base font-medium text-background transition-colors duration-200 hover:bg-foreground/90"
+              : "inline-flex min-h-14 w-full items-center justify-center rounded-full border border-border bg-background px-6 text-base font-medium text-foreground transition-colors duration-200 hover:bg-surface"
+          }
         >
           {isCancelled || isPast ? "Escribir por WhatsApp" : "Cambiar o cancelar"}
         </a>

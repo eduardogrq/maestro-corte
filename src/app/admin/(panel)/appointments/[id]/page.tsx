@@ -16,7 +16,7 @@ import {
   utcToWallClock,
 } from "@/lib/datetime"
 import { buildMapsUrl } from "@/lib/maps"
-import { buildTelUrl, formatMxPhone } from "@/lib/phone"
+import { buildWhatsAppChatUrl, formatMxPhone } from "@/lib/phone"
 import { buildPublicAppointmentUrl } from "@/server/appointments/public-link"
 import { findAppointmentById } from "@/server/appointments/repository"
 import { requireSession } from "@/server/auth/dal"
@@ -76,12 +76,17 @@ export default async function AppointmentDetailPage({
         <div>
           <dt className="text-sm text-muted">Teléfono</dt>
           <dd className="text-base">
+            {/* WhatsApp instead of `tel:`: the panel lives on his phone and the
+                conversation with the client is already there. */}
             <a
-              href={buildTelUrl(appointment.clientPhone)}
+              href={buildWhatsAppChatUrl(appointment.clientPhone)}
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-accent underline underline-offset-4"
             >
               {formatMxPhone(appointment.clientPhone)}
             </a>
+            <span className="ml-2 text-sm text-muted">· WhatsApp</span>
           </dd>
         </div>
 

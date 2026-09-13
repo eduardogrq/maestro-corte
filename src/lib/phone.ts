@@ -45,6 +45,14 @@ export function buildTelUrl(normalized: string): string {
   return `tel:+${normalized}`
 }
 
+/**
+ * Opens the conversation with no text prefilled — for tapping a client's number
+ * to keep talking, where a canned message would only be in the way.
+ */
+export function buildWhatsAppChatUrl(normalized: string): string {
+  return `https://wa.me/${normalized}`
+}
+
 export function buildWhatsAppUrl(normalized: string, message: string): string {
   return `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`
 }
